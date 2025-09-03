@@ -41,3 +41,4 @@ velero restore create --from-backup my-backup
 ✅ Cluster & PV backups with Velero
 ✅ Restore workloads after failure
 ✅ Disaster recovery readiness
+.
