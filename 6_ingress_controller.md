@@ -1,40 +1,43 @@
-📘 Project 6: Ingress Controller
+# 📘 Project 6: Ingress Controller  
 
-By default, we used NodePort or LoadBalancer Services to expose apps.
-But when you have multiple apps, assigning different ports/IPs isn’t scalable.
+By default, we used **NodePort** or **LoadBalancer Services** to expose apps.  
+But when you have multiple apps, assigning different ports/IPs isn’t scalable.  
 
-👉 Ingress Controller solves this by routing traffic to different apps based on hostnames or paths.
+👉 **Ingress Controller** solves this by routing traffic to different apps based on hostnames or paths.  
 
-🔹 Real-World Use Case
+---
 
-Imagine hosting multiple apps:
+## 🔹 Real-World Use Case  
 
-/app1 → App1 (Nginx)
+Imagine hosting multiple apps:  
 
-/app2 → App2 (httpd)
+- `/app1` → App1 (Nginx)  
+- `/app2` → App2 (httpd)  
 
-Instead of separate NodePorts, you use a single domain/IP and let Ingress route traffic.
+Instead of separate NodePorts, you use a **single domain/IP** and let **Ingress route traffic**.  
 
-🛠️ Part 1: Manual Steps (kubectl + YAML)
-Step 1: Install NGINX Ingress Controller
+---
 
-For Minikube:
+## 🛠️ Part 1: Manual Steps (kubectl + YAML)  
 
+### Step 1: Install NGINX Ingress Controller  
+
+For **Minikube**:  
+
+```sh
 minikube addons enable ingress
-
-
 For generic Kubernetes:
 
+
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
-
-
 Check pods:
 
-kubectl get pods -n ingress-nginx
 
+kubectl get pods -n ingress-nginx
 Step 2: Deploy Two Sample Apps
 
-app1-deployment.yaml
+
+📄 app1-deployment.yaml
 
 apiVersion: apps/v1
 kind: Deployment
@@ -66,9 +69,8 @@ spec:
   ports:
   - port: 80
     targetPort: 80
+📄 app2-deployment.yaml
 
-
-app2-deployment.yaml
 
 apiVersion: apps/v1
 kind: Deployment
@@ -103,14 +105,15 @@ spec:
 
 
 Apply:
-
 kubectl apply -f app1-deployment.yaml
 kubectl apply -f app2-deployment.yaml
 
+
+
 Step 3: Create Ingress Resource
 
-apps-ingress.yaml
 
+📄 apps-ingress.yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -138,43 +141,41 @@ spec:
 
 
 Apply:
-
 kubectl apply -f apps-ingress.yaml
-
-
 Check ingress:
+
 
 kubectl get ingress
 
-Step 4: Access Apps
 
+Step 4: Access Apps
 Get Minikube IP:
 
+
 minikube ip
+Open in browser:
 
 
-Access in browser:
-
-http://<MINIKUBE_IP>/app1   → Nginx welcome page  
-http://<MINIKUBE_IP>/app2   → Apache httpd page  
-
-
+http://<MINIKUBE_IP>/app1   → Nginx welcome page
+http://<MINIKUBE_IP>/app2   → Apache httpd page
 ✅ Both apps are served via one IP using Ingress.
 
 ⚡ Part 2: Bash Script Automation
+📄 k8s_ingress_setup.sh
 
-Create k8s_ingress_setup.sh
 
 #!/bin/bash
 
 echo "🚀 Setting up Ingress Controller with 2 apps..."
 
 # Step 1: Enable ingress (for Minikube)
+
 if command -v minikube &> /dev/null; then
   minikube addons enable ingress
 fi
 
 # Step 2: App1 (Nginx)
+
 kubectl apply -f - <<EOF
 apiVersion: apps/v1
 kind: Deployment
@@ -209,6 +210,7 @@ spec:
 EOF
 
 # Step 3: App2 (Apache httpd)
+
 kubectl apply -f - <<EOF
 apiVersion: apps/v1
 kind: Deployment
@@ -243,6 +245,7 @@ spec:
 EOF
 
 # Step 4: Ingress
+
 kubectl apply -f - <<EOF
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -271,19 +274,18 @@ spec:
 EOF
 
 echo "✅ Ingress setup complete!"
+
+
 kubectl get ingress
 
-
 Run:
-
 bash k8s_ingress_setup.sh
 
 ✅ Key Takeaways
+Ingress Controller = Entry point for external traffic
 
-Ingress Controller = Entry point for external traffic.
+Ingress Resource = Defines routing rules (e.g., /app1, /app2)
 
-Ingress Resource = Defines routing rules (e.g., /app1, /app2).
+Useful for multi-service apps (microservices)
 
-Useful for multi-service apps (microservices).
-
-Reduces need for multiple NodePorts/LoadBalancers.
+Reduces need for multiple NodePorts/LoadBalancers
