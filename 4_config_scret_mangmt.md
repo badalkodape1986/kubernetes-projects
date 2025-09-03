@@ -1,26 +1,30 @@
-📘 Project 4: Config & Secrets Management
+# 📘 Project 4: Config & Secrets Management
 
 Kubernetes provides two key resources for managing app data:
 
-ConfigMap → Stores non-sensitive configuration (e.g., DB host, app settings).
+- **ConfigMap** → Stores non-sensitive configuration (e.g., DB host, app settings).  
+- **Secret** → Stores sensitive information (e.g., DB passwords, API keys).  
 
-Secret → Stores sensitive information (e.g., DB passwords, API keys).
+---
 
-🔹 Real-World Use Case
+## 🔹 Real-World Use Case  
 
-Imagine deploying a MySQL database and a backend application:
+Imagine deploying a **MySQL database and a backend application**:  
 
-Instead of hardcoding database details in YAML,
+- Instead of hardcoding database details in YAML,  
+- Use **ConfigMaps** for DB host/username and **Secrets** for DB password.  
 
-Use ConfigMaps for DB host/username and Secrets for DB password.
+👉 This makes your app **portable, secure, and manageable**.  
 
-This makes your app portable, secure, and manageable.
+---
 
-🛠️ Part 1: Manual Steps (kubectl + YAML)
-Step 1: Create a ConfigMap
+## 🛠️ Part 1: Manual Steps (kubectl + YAML)  
 
-db-config.yaml
+### Step 1: Create a ConfigMap  
 
+**db-config.yaml**  
+
+```yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -31,13 +35,13 @@ data:
 
 
 Apply:
-
 kubectl apply -f db-config.yaml
 
 
 Check:
-
 kubectl get configmap db-config -o yaml
+
+
 
 Step 2: Create a Secret
 
@@ -50,21 +54,20 @@ metadata:
 type: Opaque
 data:
   DB_PASSWORD: cGFzc3dvcmQxMjM=   # base64 of "password123"
-
-
 ⚡ Encode secret with:
+
 
 echo -n "password123" | base64
 
 
 Apply:
-
 kubectl apply -f db-secret.yaml
 
 
 Check:
-
 kubectl get secret db-secret -o yaml
+
+
 
 Step 3: Use ConfigMap & Secret in a Deployment
 
@@ -106,19 +109,14 @@ spec:
 
 
 Apply:
-
 kubectl apply -f app-deployment.yaml
 
 
 Verify environment variables:
-
 kubectl exec -it <backend-pod-name> -- env | grep DB_
-
-
 ✅ You should see DB_HOST, DB_USER, and DB_PASSWORD.
 
 Step 4: (Optional) Mount Config & Secret as Files
-
 You can also mount them inside containers:
 
         volumeMounts:
@@ -134,9 +132,12 @@ You can also mount them inside containers:
         secret:
           secretName: db-secret
 
+
+
 ⚡ Part 2: Bash Script Automation
 
-Create k8s_config_secrets.sh
+
+k8s_config_secrets.sh
 
 #!/bin/bash
 
@@ -206,5 +207,14 @@ kubectl get configmap,secret,deployment
 
 
 Run:
-
 bash k8s_config_secrets.sh
+
+
+✅ Key Takeaways
+ConfigMaps → non-sensitive app configs.
+
+Secrets → sensitive data (must be base64 encoded).
+
+Avoid hardcoding credentials → use Kubernetes-native resources.
+
+Configs and Secrets can be mounted as env vars or files.
