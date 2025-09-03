@@ -1,59 +1,55 @@
-📘 Project 9: Kubernetes on AWS (EKS)
+# 📘 Project 9: Kubernetes on AWS (EKS)  
 
-Amazon Elastic Kubernetes Service (EKS) is a managed Kubernetes service.
-Instead of running your own control plane, AWS manages it for you.
-You just manage worker nodes + deployments.
+**Amazon Elastic Kubernetes Service (EKS)** is a **managed Kubernetes service**.  
+Instead of running your own control plane, AWS manages it for you.  
+You just manage **worker nodes + deployments**.  
 
-🔹 Real-World Use Case
+---
 
-Imagine your startup runs Kubernetes workloads in Minikube.
-When moving to production, you need:
+## 🔹 Real-World Use Case  
 
-High availability (multi-AZ cluster)
+Imagine your startup runs Kubernetes workloads in Minikube.  
+When moving to **production**, you need:  
 
-AWS networking (VPC, Subnets, LoadBalancers)
+- ✅ High availability (**multi-AZ cluster**)  
+- ✅ AWS networking (**VPC, Subnets, LoadBalancers**)  
+- ✅ Integration with AWS services (**RDS, S3, CloudWatch**)  
 
-Integration with AWS services (RDS, S3, CloudWatch)
+👉 **Solution:** EKS – fully managed Kubernetes on AWS.  
 
-👉 Solution: EKS – fully managed K8s on AWS.
+---
 
-🛠️ Part 1: Manual Steps (AWS Console + CLI)
-Step 1: Create an EKS Cluster (Console)
+## 🛠️ Part 1: Manual Steps (AWS Console + CLI)  
 
-Open AWS Console → EKS → Create Cluster.
+### Step 1: Create an EKS Cluster (Console)  
 
-Name: my-eks-cluster.
+1. Open **AWS Console → EKS → Create Cluster**  
+2. Name: `my-eks-cluster`  
+3. Kubernetes version: **latest stable**  
+4. Networking: Choose **VPC/Subnets/Security Groups**  
+5. Create **IAM role** for EKS (with `AmazonEKSClusterPolicy`)  
+6. Click **Create**  
 
-Kubernetes version: latest stable.
+---
 
-Networking: Choose VPC/Subnets/Security Groups.
+### Step 2: Create Worker Node Group  
 
-Create IAM role for EKS (with AmazonEKSClusterPolicy).
+1. Go to **Compute → Add Node Group**  
+2. Name: `worker-nodes`  
+3. Attach IAM role (with `AmazonEKSWorkerNodePolicy`)  
+4. Choose EC2 type: `t3.medium`  
+5. Desired nodes: `2`  
+6. Click **Create**  
 
-Click Create.
+---
 
-Step 2: Create Worker Node Group
+### Step 3: Configure kubectl for EKS  
 
-Go to Compute → Add Node Group.
+**Install eksctl (recommended tool):**  
 
-Name: worker-nodes.
-
-Attach IAM role (with AmazonEKSWorkerNodePolicy).
-
-Choose EC2 type (t3.medium).
-
-Desired nodes: 2.
-
-Click Create.
-
-Step 3: Configure kubectl for EKS
-
-Install eksctl (recommended tool):
-
+```sh
 curl -sSL "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
 sudo mv /tmp/eksctl /usr/local/bin
-
-
 Create EKS cluster with eksctl:
 
 eksctl create cluster \
@@ -66,22 +62,18 @@ eksctl create cluster \
 
 
 Update kubeconfig:
-
 aws eks update-kubeconfig --region us-east-1 --name my-eks-cluster
 
 
 Verify:
-
 kubectl get nodes
 
 
-✅ You should see worker nodes registered.
+✅ You should see worker nodes registered
 
 Step 4: Deploy an Application
+📄 nginx-deployment.yaml
 
-Use the Nginx Deployment from earlier projects:
-
-nginx-deployment.yaml
 
 apiVersion: apps/v1
 kind: Deployment
@@ -117,16 +109,15 @@ spec:
 
 
 Apply:
-
 kubectl apply -f nginx-deployment.yaml
 kubectl get svc nginx-service
-
-
 ✅ AWS will provision an Elastic Load Balancer (ELB) → copy the EXTERNAL-IP and access in browser.
 
 ⚡ Part 2: Bash Script Automation
 
-Create eks_deploy_nginx.sh
+
+📄 eks_deploy_nginx.sh
+
 
 #!/bin/bash
 
@@ -186,5 +177,14 @@ echo "✅ Nginx deployed on EKS. Run: kubectl get svc nginx-service"
 
 
 Run:
-
 bash eks_deploy_nginx.sh
+
+
+🎯 Final Outcome
+✅ EKS cluster provisioned in AWS (with managed control plane)
+
+✅ Worker nodes running apps across multiple AZs
+
+✅ Nginx app deployed and exposed via AWS Elastic Load Balancer (ELB)
+
+✅ Seamless integration with AWS networking & IAM
