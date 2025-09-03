@@ -1,55 +1,51 @@
-📘 Project 10: Service Mesh with Istio
+# 📘 Project 10: Service Mesh with Istio  
 
-Istio is a popular service mesh that provides:
+**Istio** is a popular **service mesh** that provides:  
 
-Traffic management → Blue/Green, Canary releases, routing.
+- **Traffic management** → Blue/Green, Canary releases, routing  
+- **Security** → mTLS between services  
+- **Observability** → Tracing, logging, and monitoring with tools like Kiali, Jaeger, Prometheus  
 
-Security → mTLS between services.
+---
 
-Observability → Tracing, logging, and monitoring with tools like Kiali, Jaeger, Prometheus.
+## 🔹 Real-World Use Case  
 
-🔹 Real-World Use Case
+Imagine you’re running **microservices in Kubernetes**:  
 
-Imagine you’re running microservices in Kubernetes:
+- **frontend** → user interface  
+- **backend** → API  
+- **payments** → payment gateway  
 
-frontend → user interface
+You want to:  
 
-backend → API
+- Route **only 10% of traffic** to a new backend version (canary)  
+- Secure all traffic with **mTLS**  
+- Monitor requests with **tracing & dashboards**  
 
-payments → payment gateway
+👉 **Solution:** Deploy Istio as a **service mesh**  
 
-You want to:
+---
 
-Route only 10% of traffic to a new backend version (canary).
+## 🛠️ Part 1: Manual Steps (kubectl + Istioctl)  
 
-Secure all traffic with mTLS.
+### Step 1: Install Istio  
 
-Monitor requests with tracing & dashboards.
+Download and install `istioctl`:  
 
-👉 Solution → Deploy Istio as service mesh.
-
-🛠️ Part 1: Manual Steps (kubectl + Istioctl)
-Step 1: Install Istio
-
-Download and install istioctl:
-
+```sh
 curl -L https://istio.io/downloadIstio | sh -
 cd istio-*
 export PATH=$PWD/bin:$PATH
-
-
 Install Istio (default profile):
 
 istioctl install --set profile=demo -y
-
-
-Label default namespace for Istio auto-injection:
-
+Enable Istio auto-injection in default namespace:
 kubectl label namespace default istio-injection=enabled
+
 
 Step 2: Deploy Sample Apps
 
-frontend.yaml
+📄 frontend.yaml
 
 apiVersion: apps/v1
 kind: Deployment
@@ -82,7 +78,8 @@ spec:
   - port: 80
 
 
-backend.yaml
+
+📄 backend.yaml
 
 apiVersion: apps/v1
 kind: Deployment
@@ -139,14 +136,14 @@ spec:
   - port: 80
 
 
-Apply apps:
-
+Apply:
 kubectl apply -f frontend.yaml
 kubectl apply -f backend.yaml
-
 Step 3: Configure Istio Gateway & VirtualService
 
-istio-gateway.yaml
+
+
+📄 istio-gateway.yaml
 
 apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
@@ -186,9 +183,11 @@ spec:
         subset: v2
       weight: 10
 
+
+
 Step 4: Define DestinationRules
 
-destination-rules.yaml
+📄 destination-rules.yaml
 
 apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
@@ -206,20 +205,14 @@ spec:
 
 
 Apply:
-
 kubectl apply -f istio-gateway.yaml
 kubectl apply -f destination-rules.yaml
-
-
-✅ Now Istio routes 90% traffic → backend-v1, 10% traffic → backend-v2.
+✅ Istio now routes 90% traffic → backend-v1 and 10% traffic → backend-v2
 
 Step 5: Observability
 
 Deploy Istio addons:
-
 kubectl apply -f samples/addons
-
-
 This installs:
 
 Prometheus → Metrics
@@ -231,13 +224,13 @@ Jaeger → Tracing
 Kiali → Service mesh visualization
 
 Access addons (using port-forward):
-
 kubectl port-forward svc/kiali -n istio-system 20001:20001
 kubectl port-forward svc/jaeger-query -n istio-system 16686:16686
 
+
 ⚡ Part 2: Bash Script Automation
 
-Create k8s_istio_setup.sh
+📄 k8s_istio_setup.sh
 
 #!/bin/bash
 
@@ -398,5 +391,14 @@ echo "✅ Istio setup complete! Access Grafana/Jaeger/Kiali for observability."
 
 
 Run:
-
 bash k8s_istio_setup.sh
+
+
+🎯 Final Outcome
+✅ Traffic splitting (90% → v1, 10% → v2) with Istio
+
+✅ mTLS security between microservices
+
+✅ Observability with Grafana, Jaeger, Kiali, Prometheus
+
+✅ Production-ready service mesh on Kubernetes
