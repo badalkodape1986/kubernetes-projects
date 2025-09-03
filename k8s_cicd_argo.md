@@ -1,26 +1,29 @@
-📘 Project 8: CI/CD on Kubernetes – Jenkins + ArgoCD
+# 📘 Project 8: CI/CD on Kubernetes – Jenkins + ArgoCD  
 
-We’ll use:
+We’ll use:  
 
-Jenkins → Automates build/test/push steps.
+- **Jenkins** → Automates build/test/push steps  
+- **ArgoCD (GitOps)** → Syncs Kubernetes manifests from GitHub repo to the cluster  
 
-ArgoCD (GitOps) → Syncs Kubernetes manifests from GitHub repo to the cluster.
+---
 
-🔹 Real-World Use Case
+## 🔹 Real-World Use Case  
 
-Imagine you have a Node.js API running in Kubernetes:
+Imagine you have a **Node.js API running in Kubernetes**:  
 
-When developers push code → Jenkins builds a Docker image & pushes it to DockerHub/ECR.
+- When developers **push code** → Jenkins builds a **Docker image** & pushes it to **DockerHub/ECR**  
+- Updated Kubernetes manifests (Deployment) are committed to **Git**  
+- ArgoCD continuously syncs **cluster state with Git** → ensuring a **GitOps workflow**  
 
-Updated Kubernetes manifests (Deployment) are committed to Git.
+---
 
-ArgoCD continuously syncs cluster state with Git → ensuring GitOps workflow.
+## 🛠️ Part 1: Manual Setup  
 
-🛠️ Part 1: Manual Setup
-Step 1: Deploy Jenkins in Kubernetes
+### Step 1: Deploy Jenkins in Kubernetes  
 
-jenkins-deployment.yaml
+📄 **jenkins-deployment.yaml**  
 
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -57,21 +60,18 @@ spec:
 
 
 Apply:
-
 kubectl apply -f jenkins-deployment.yaml
 
 
 Access Jenkins:
-
 http://<NodeIP>:30009
-
-
 Get admin password:
+
 
 kubectl exec -it <jenkins-pod> -- cat /var/jenkins_home/secrets/initialAdminPassword
 
-Step 2: Configure Jenkins Pipeline
 
+Step 2: Configure Jenkins Pipeline
 Install plugins:
 
 Docker
@@ -114,31 +114,30 @@ pipeline {
     }
 }
 
+
 Step 3: Install ArgoCD
+
 kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-
-
 Expose ArgoCD UI (NodePort for demo):
+
 
 kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "NodePort"}}'
 kubectl get svc -n argocd
 
 
 Login to ArgoCD:
-
 kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 --decode ; echo
 
 
 Access in browser:
-
 http://<NodeIP>:<NodePort>
 
 Step 4: Create ArgoCD App
-
 Point ArgoCD to your GitHub repo with Kubernetes manifests.
 
-Example manifest (argocd-app.yaml):
+
+📄 argocd-app.yaml
 
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -161,15 +160,12 @@ spec:
 
 
 Apply:
-
 kubectl apply -f argocd-app.yaml
+✅ ArgoCD will sync cluster state with Git automatically
 
-
-✅ ArgoCD will sync cluster state with Git automatically.
 
 ⚡ Part 2: Bash Script Automation
-
-Create k8s_cicd_setup.sh
+📄 k8s_cicd_setup.sh
 
 #!/bin/bash
 
@@ -219,8 +215,17 @@ kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "NodePort"}}'
 
 echo "✅ Jenkins at http://<NodeIP>:30009"
 echo "✅ ArgoCD at http://<NodeIP>:<NodePort>"
-
-
 Run:
 
+
 bash k8s_cicd_setup.sh
+
+
+🎯 Final Outcome
+✅ Jenkins builds & pushes Docker images automatically
+
+✅ Kubernetes manifests are updated & pushed to Git
+
+✅ ArgoCD ensures the cluster is always in sync with Git (GitOps)
+
+✅ Fully automated CI/CD pipeline on Kubernetes
