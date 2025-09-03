@@ -1,29 +1,33 @@
-📘 Project 5: Storage & Persistence – WordPress + MySQL
+# 📘 Project 5: Storage & Persistence – WordPress + MySQL on Kubernetes  
 
-Kubernetes Pods are ephemeral → if a Pod dies, its data is lost.
-To persist data (like MySQL DB or WordPress files), we use:
+Kubernetes Pods are **ephemeral** → if a Pod dies, its data is lost.  
 
-PersistentVolume (PV): Actual storage (local disk, NFS, EBS, etc.).
+To persist data (like MySQL DB or WordPress files), we use:  
 
-PersistentVolumeClaim (PVC): Request for storage by a Pod.
+- **PersistentVolume (PV):** Actual storage (local disk, NFS, EBS, etc.)  
+- **PersistentVolumeClaim (PVC):** Request for storage by a Pod  
 
-🔹 Real-World Use Case
+---
 
-Deploy a WordPress blog with MySQL:
+## 🔹 Real-World Use Case  
 
-MySQL stores data in a PVC.
+Deploy a **WordPress blog with MySQL**:  
 
-WordPress stores uploads/themes in a PVC.
+- MySQL stores data in a PVC  
+- WordPress stores uploads/themes in a PVC  
+- Even if Pods restart, the data persists  
 
-Even if Pods restart, the data persists.
+---
 
-🛠️ Part 1: Manual Steps (kubectl + YAML)
-Step 1: Create Persistent Volumes
+## 🛠️ Part 1: Manual Deployment (kubectl + YAML)  
 
-For demo, we use hostPath (works in Minikube).
+### Step 1: Create Persistent Volumes  
 
-pv.yaml
+For demo, we use **hostPath** (works in Minikube).  
 
+📄 **pv.yaml**  
+
+```yaml
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -50,12 +54,11 @@ spec:
 
 
 Apply:
-
 kubectl apply -f pv.yaml
 
-Step 2: Create PVCs
 
-pvc.yaml
+Step 2: Create PVCs
+📄 pvc.yaml
 
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -81,17 +84,14 @@ spec:
 
 
 Apply:
-
 kubectl apply -f pvc.yaml
 
-
 Check:
-
 kubectl get pv,pvc
 
-Step 3: Deploy MySQL
 
-mysql-deployment.yaml
+Step 3: Deploy MySQL
+📄 mysql-deployment.yaml
 
 apiVersion: v1
 kind: Secret
@@ -147,12 +147,11 @@ spec:
 
 
 Apply:
-
 kubectl apply -f mysql-deployment.yaml
 
-Step 4: Deploy WordPress
 
-wordpress-deployment.yaml
+Step 4: Deploy WordPress
+📄 wordpress-deployment.yaml
 
 apiVersion: apps/v1
 kind: Deployment
@@ -204,32 +203,30 @@ spec:
 
 
 Apply:
-
 kubectl apply -f wordpress-deployment.yaml
 
+
 Step 5: Access WordPress
-
 Get Node IP:
-
 kubectl get nodes -o wide
-
-
 Open in browser:
 
+
 http://<NodeIP>:30008
-
-
-✅ You should see the WordPress installation page.
+✅ You should see the WordPress installation page
 
 ⚡ Part 2: Bash Script Automation
+📄 k8s_wordpress_mysql.sh
 
-Create k8s_wordpress_mysql.sh
 
 #!/bin/bash
 
 echo "🚀 Deploying WordPress + MySQL with Persistent Storage..."
 
+
+
 # Step 1: PVs
+
 kubectl apply -f - <<EOF
 apiVersion: v1
 kind: PersistentVolume
@@ -256,7 +253,9 @@ spec:
     path: "/mnt/data/wordpress"
 EOF
 
+
 # Step 2: PVCs
+
 kubectl apply -f - <<EOF
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -282,6 +281,7 @@ spec:
 EOF
 
 # Step 3: Secret for MySQL
+
 kubectl apply -f - <<EOF
 apiVersion: v1
 kind: Secret
@@ -292,7 +292,9 @@ data:
   password: cGFzc3dvcmQ=   # "password"
 EOF
 
+
 # Step 4: MySQL Deployment + Service
+
 kubectl apply -f - <<EOF
 apiVersion: apps/v1
 kind: Deployment
@@ -340,6 +342,7 @@ spec:
 EOF
 
 # Step 5: WordPress Deployment + Service
+
 kubectl apply -f - <<EOF
 apiVersion: apps/v1
 kind: Deployment
@@ -393,7 +396,14 @@ EOF
 echo "✅ WordPress is available at http://<NodeIP>:30008"
 kubectl get svc wordpress-service
 
-
 Run:
-
 bash k8s_wordpress_mysql.sh
+🎯 Final Outcome
+✅ Persistent Storage ensures WordPress uploads and MySQL data survive Pod restarts
+
+✅ Manual + Automated Deployments for real-world reproducibility
+
+✅ NodePort Service exposes WordPress at:
+
+
+http://<NodeIP>:30008
